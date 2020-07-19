@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% from 'macros.html' import render_field %}
+
+{% block title %}Index{% endblock  %}
+
+{% block content %}
+<section>
+    <div class="container">
+        <div class="new-entry">
+            <h2>New Entry</h2>
+            <form method="POST" action="" class="form">
+                <ul>
+                    <dt>{{ form.hidden_tag() }}</dt>
+                    <dt>{{ form.title.label }} {{ form.title() }}</dt>
+                    <dt>{{ form.date.label }} {{ form.date(type="date") }}</dt>
+                    <dt>{{ form.time_from.label }} {{ form.time_from(type="time") }}</dt>
+                    <dt>{{ form.time_to.label }} {{ form.time_to(type="time") }}</dt>
+                    <dt>{{ form.what_i_learned.label }} {{ form.what_i_learned() }}</dt>
+                    <dt>{{ form.resources_to_remember.label }} {{ form.resources_to_remember() }}</dt>
+                </ul>
+                <button type="submit" id="submit">Submit!</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
