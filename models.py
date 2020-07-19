@@ -38,10 +38,7 @@ class User(UserMixin, Model):
         oder_by = ('joined_at' , )
 
 class Post(Model):
-    user = ForeignKeyField(
-        rel_model=User,
-        related_name='posts'
-    )
+    
     title = CharField(max_length=100)
     date = DateField()
     time_from = TimeField()
