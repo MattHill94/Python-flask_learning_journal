@@ -160,5 +160,5 @@ def not_found(error):
     return render_template('404.html'), 404
 
 if __name__ =='__main__':
-    models.initialize()
+    models.initialize()  
     app.run(debug=DEBUG, host=HOST, port=PORT)
