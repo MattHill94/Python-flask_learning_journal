@@ -1,70 +1,103 @@
 import datetime
-from peewee import *
-from flask_login import UserMixin
-from flask import Flask
+import re
+
 from flask_bcrypt import generate_password_hash
+from flask_login import UserMixin
+from peewee import *
 
 db = SqliteDatabase('journal.db')
 
 class User(UserMixin, Model):
-    username = CharField(unique=True)
     email = CharField(unique=True)
-    password = CharField(max_length=100)
-    joined_at = DateTimeField(default=datetime.datetime.now)
-    is_admin = BooleanField(default=False)
+    password = CharField()
 
-    def get_posts(self):
-        return Post.select().where(Post.user == self)
-    
-    def get_stream(self):
-        return Post.select().where(
-            (Post.user == self)
-        )
-        
+    class Meta:
+        database = db
+
     @classmethod
-    def create_user(cls, username, email, password, admin=False):
+    def create_user(cls, email, password):
         try:
             with db.transaction():
                 cls.create(
-                    username=username,
                     email=email,
-                    password=generate_password_hash(password),
-                    is_admin=admin)
+                    password=generate_password_hash(password))
         except IntegrityError:
-            raise ValueError("User already exists")
+            raise ValueError('User already exists')
+
+class BaseModel(Model):
+    class Meta:
+        database = db
+
+class Post(BaseModel):
+    user = ForeignKeyField(
+        User,
+        related_name='posts')
+    title = CharField(unique=True)
+    date = DateField(default=datetime.datetime.now())
+    what_i_learned = TextField()
+    resources_to_remember = TextField()
+
+class Tags(BaseModel):
+    tag = CharField()
+
+class PostTags(Model):
+    post = ForeignKeyField(Post)
+    tag = ForeignKeyField(Tags)
 
     class Meta:
         database = db
-        oder_by = ('joined_at' , )
-
-class Post(Model):
-    
-    title = CharField(max_length=100)
-    date = DateField()
-    time_from = TimeField()
-    time_to = TimeField()
-    what_i_learned = CharField(max_length=250)
-    resources_to_remember = CharField(max_length=250)
-
-    class Meta:
-        database = db
+        indexes = (
+            (('post', 'tag'), True),
+        )
 
     @classmethod
-    def create_post(cls, title, date, time_from, time_to, what_i_learned, resources_to_remember):
+    def tag_current_entries(cls, tag):
         try:
-            cls.create(
-                title=title,
-                date=date,
-                time_from=time_from,
-                time_to=time_to,
-                what_i_learned=what_i_learned,
-                resources_to_remember=resources_to_remember,
-            )
-        except IntegrityError:
-            raise ValueError("something happened")
+            tag_posts = Post.select().where(Post.what_i_learned.contains(tag.tag))
+        except DoesNotExist:
+            pass
+        else:
+            try:
+                for post in tag_posts:
+                    cls.create(
+                        post=post,
+                        tag=tag)
+            except IntegrityError:
+                pass
+
+    @classmethod
+    def tag_new_post(cls, post):
+        try:
+            associated_tags = Tags.select().where(Tags.tag.in_(re.findall(r"[\w']+|[.,!?;]", post.what_i_learned)))
+        except DoesNotExist:
+            pass
+        else:
+            try:
+                for tag in associated_tags:
+                    cls.create(
+                        post=post,
+                        tag=tag)
+            except IntegrityError:
+                pass
+
+    @classmethod
+    def remove_existing_tag(cls, post):
+        try:
+            associated_tags = Tags.select().where(Tags.tag.not_in(re.findall(r"[\w']+|[.,!?;]", post.content)))
+        except DoesNotExist:
+            pass
+        else:
+            for tag in associated_tags:
+                try:
+                    unwanted_association = cls.get(tag=tag, post=post)
+                except DoesNotExist:
+                    pass
+                else:
+                    unwanted_association.delete_instance()
 
 
 def initialize():
     db.connect()
-    db.create_tables([Post, User], safe=True)
-    db.close()     
+    db.create_tables([User, Tags, Post, PostTags], safe=True)
+    db.close()
+
