@@ -5,17 +5,20 @@
 
 {% block content %}
 <section>
-    <div class="edit-entry">
-        <h2>Edit Post</h2>
-        <form method="POST" action="">
-            {{ form.hidden_tag() }}
-            <div>{{ form.title.label }}{{ render_field(form.title) }}</div>
-            <div>{{ form.date.label }}{{ render_field(form.date) }}</div>
-            <div>{{ form.what_i_learned.label }}{{ render_field(form.what_i_learned) }}</div>
-            <div>{{ form.resources_to_remember.label }}{{ render_field(form.resources_to_remember) }}</div>
-            <input type="submit" value="Save Changes" class="button icon-left"><br>
-            <a href="{{ url_for('view_post', id=post.id) }}" class="button icon-left">Cancel</a>
-        </form>
+    <div class="container">
+        <div class="edit-entry">
+            <h2>Edit Post</h2>
+            <form method="POST" action="" class="form">
+                    <dt>{{ form.hidden_tag() }}</dt>
+                    <dt>{{ form.title.label }} {{ form.title() }}</dt>
+                    <dt>{{ form.date.label }} {{ form.date(type="date") }}</dt>
+                    <dt>{{ form.time_spent.label }} {{ form.time_spent(type="time") }}</dt>
+                    <dt>{{ form.what_i_learned.label }} {{ form.what_i_learned() }}</dt>
+                    <dt>{{ form.resources_to_remember.label }} {{ form.resources_to_remember() }}</dt>
+                <a><button class="button icon-left" type="submit" id="submit"> Save changes! </button> </a>
+                <a href="{{ url_for('view_post', id=post.id) }}" class="button icon-left"> Cancel </a>
+            </form>
+        </div>
     </div>
 </section>
 {% endblock %}

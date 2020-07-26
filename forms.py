@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, TextAreaField
 from wtforms.validators import InputRequired, ValidationError, Email, Length, EqualTo
-from wtforms.fields.html5 import IntegerField, DateField
+from wtforms.fields.html5 import IntegerField, DateField, TimeField
 
 from models import User
 from models import Post
@@ -30,8 +30,6 @@ class RegistrationForm(FlaskForm):
         Length(min=2),
     ])
 
-
-
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[
         InputRequired(message='You must enter and email address'),
@@ -40,7 +38,6 @@ class LoginForm(FlaskForm):
     password = PasswordField('Password', validators=[
         InputRequired(message='You must enter your password')
     ])
-
 
 class JournalEntryForm(FlaskForm):
     title = StringField('Title', validators=[
@@ -52,18 +49,26 @@ class JournalEntryForm(FlaskForm):
         InputRequired(message='Please enter a date')
     ])
 
+    time_spent = TimeField('Time spent in hrs', validators=[
+        InputRequired(message='Please enter time spent!')
+    ])
+
     what_i_learned = TextAreaField('What I Learned', validators=[
         InputRequired(message='You must have learned something')
     ])
 
     resources_to_remember = TextAreaField('Resources to Remember')
 
-
 class EditForm(FlaskForm):
     title = StringField('Title', validators=[
         InputRequired(message='You must give your entry a title'),
     ])
     date = DateField('Date')
+
+    time_spent = TimeField('Time spent in hrs', validators=[
+        InputRequired(message='Please enter time spent!')
+    ])
+
     what_i_learned = TextAreaField('What I Learned', validators=[
         InputRequired(message='You must have learned something')
     ])

@@ -34,6 +34,7 @@ class Post(BaseModel):
         related_name='posts')
     title = CharField(unique=True)
     date = DateField(default=datetime.datetime.now())
+    time_spent = TimeField()
     what_i_learned = TextField()
     resources_to_remember = TextField()
 

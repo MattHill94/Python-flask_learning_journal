@@ -17,14 +17,12 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-
 @login_manager.user_loader
 def load_user(user_id):
     try:
         return models.User.get(models.User.id == user_id)
     except models.DoesNotExist:
         return None
-
 
 @app.before_request
 def before_request():
@@ -51,7 +49,6 @@ def index():
         display_posts.append([post, post_tags])
     if current_user.is_authenticated is False:
                 return redirect(url_for('register'))
-
     return render_template('index.html', posts=display_posts)
 
 @app.route('/entries/new', methods=('GET', 'POST'))
@@ -63,6 +60,7 @@ def create_new():
         models.Post.create(user=g.user.get_id(),
                             title=form.title.data.strip(),
                             date=form.date.data,
+                            time_spent=form.time_spent.data,
                             what_i_learned=form.what_i_learned.data.strip(),
                             resources_to_remember=form.resources_to_remember.data.strip()
                             )
@@ -128,21 +126,22 @@ def edit_post(id):
         form = forms.EditForm(
             title=post.title,
             date=post.date,
+            time_spent=post.time_spent,
             what_i_learned=post.what_i_learned,
             resources_to_remember=post.resources_to_remember
         )
         if form.validate_on_submit():
             post.title = form.title.data.strip()
             post.date_created = form.date.data
+            post.time_spent = form.time_spent.data.strip()
             post.what_i_learned = form.what_i_learned.data.strip()
             post.resources_to_remember = form.resources_to_remember.data.strip()
             post.save()
             flash("Entry has been updated", "success")
-            models.PostTags.tag_new_entry(models.Post.get(title=form.title.data.strip()))
+            models.PostTags.tag_new_post(models.Post.get(title=form.title.data.strip()))
             models.PostTags.remove_existing_tag(models.Post.get(title=form.title.data.strip()))
             return redirect(url_for('view_posts'))
         return render_template('edit.html', form=form, post=post)
-
 
 @app.route("/Register", methods=('GET', 'POST'))
 def register():
@@ -196,7 +195,6 @@ def create_tag():
 @login_required
 def posts_by_tag(tag):
     """Shows all entries with a selected tag."""
-    # adapted from code suggestion by Charles Leifer
     display_posts = []
     try:
         tagged_posts = set((models.Post
@@ -237,19 +235,17 @@ def view_tags():
     tags = set(models.Tags.select())
     return render_template('tags.html', tags=tags)
 
-
 @app.errorhandler(404)
 def not_found(error):
     return render_template('404.html'), 404
-
 
 if __name__ == '__main__':
     models.initialize()
     try:
         with models.db.transaction():
             models.User.create_user(
-                email='email@email.com',
-                password='password',
+                email='example@email.co.uk',
+                password='password1',
             )
     except ValueError:
         pass
