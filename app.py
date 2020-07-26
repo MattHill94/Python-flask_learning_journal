@@ -39,7 +39,7 @@ def after_request(response):
 
 @app.route('/')
 def index():
-    """Index page is also a list of entries"""
+    """Index page is also a list of posts"""
     posts = models.Post.select().limit(8)
     display_posts = []
     for post in posts:
@@ -78,7 +78,6 @@ def view_post(id):
     except models.DoesNotExist:
         abort(404)
     else:
-        # adapted from code suggestion by Charles Leifer
         post_tags = set((models.Tags.select()
                           .join(models.PostTags)
                           .where(models.PostTags.post == current_post)))
