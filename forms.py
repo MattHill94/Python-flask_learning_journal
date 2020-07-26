@@ -5,6 +5,8 @@ from wtforms.fields.html5 import IntegerField, DateField
 
 from models import User
 from models import Post
+from models import Tags
+from models import PostTags
 import datetime
 
 def email_exists(form, field):
@@ -16,11 +18,6 @@ def title_exists(form, field):
     """Make sure entered title does not already exist"""
     if Post.select().where(Post.title ** field.data).exists():
         raise ValidationError('That title is already in use.')
-
-def tag_exists(form, field):
-    """Make sure a duplicate tag is not created"""
-    if Tags.select().where(Tags.tag ** field.data).exists():
-        raise ValidationError('That tag already exists.')
 
 class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[
@@ -71,3 +68,8 @@ class EditForm(FlaskForm):
         InputRequired(message='You must have learned something')
     ])
     resources_to_remember = TextAreaField('Resources to Remember')
+
+class TagForm(FlaskForm):
+    tag = StringField('Name of Your New Tag', validators=[
+        InputRequired(message='You must give your tag a title')
+    ])

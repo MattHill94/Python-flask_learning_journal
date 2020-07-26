@@ -2,10 +2,8 @@ from flask import (Flask, g, render_template, flash, redirect, url_for, abort, )
 from flask_bcrypt import check_password_hash
 from flask_login import (LoginManager, login_user, logout_user, current_user, login_required)
 
-import forms 
+import forms
 import models
-from models import User
-from models import Post
 import datetime
 
 DEBUG = True
@@ -51,6 +49,9 @@ def index():
                           .join(models.PostTags)
                           .where(models.PostTags.post == post)))
         display_posts.append([post, post_tags])
+    if current_user.is_authenticated is False:
+                return redirect(url_for('register'))
+
     return render_template('index.html', posts=display_posts)
 
 @app.route('/entries/new', methods=('GET', 'POST'))
@@ -178,6 +179,63 @@ def logout():
     logout_user()
     flash("You've been logged out! Come back soon!", "success")
     return redirect(url_for('index'))
+
+@app.route('/new_tag', methods=('GET', 'POST'))
+@login_required
+def create_tag():
+    """create a tag to organize your journal entries."""
+    form = forms.TagForm()
+    if form.validate_on_submit():
+        models.Tags.create(tag=form.tag.data.strip())
+        flash('Tag Created', 'success')
+        models.PostTags.tag_current_posts(models.Tags.get(tag=form.tag.data.strip()))
+        return redirect(url_for('view_posts'))
+    return render_template('create_tag.html', form=form)
+
+@app.route('/entries/<tag>')
+@login_required
+def posts_by_tag(tag):
+    """Shows all entries with a selected tag."""
+    # adapted from code suggestion by Charles Leifer
+    display_posts = []
+    try:
+        tagged_posts = set((models.Post
+                              .select()
+                              .join(models.PostTags)
+                              .join(models.Tags)
+                              .where(models.Tags.tag == tag)
+                              .order_by(models.Post.date.desc())))
+    except models.DoesNotExist:
+        redirect(url_for('view_posts'))
+    else:
+        for post in tagged_posts:
+            post_tags = set((models.Tags.select()
+                              .join(models.PostTags)
+                              .where(models.PostTags.post == post)))
+            display_posts.append([post, post_tags])
+    return render_template('index.html', posts=display_posts)
+
+@app.route('/tags/<tag>', methods=('GET', 'POST'))
+@login_required
+def delete_tag(tag):
+    """Delete an unused tag"""
+    try:
+        unwanted_tag = models.Tags.get(tag=tag)
+        tag_association = models.PostTags.get(tag=unwanted_tag)
+    except models.DoesNotExist:
+        abort(404)
+    else:
+        tag_association.delete_instance()
+        unwanted_tag.delete_instance()
+        flash("Tag has been deleted", "success")
+        return redirect(url_for('view_posts'))
+
+@app.route('/tags')
+@login_required
+def view_tags():
+    """View all existing tags to find post associated with them."""
+    tags = set(models.Tags.select())
+    return render_template('tags.html', tags=tags)
 
 
 @app.errorhandler(404)

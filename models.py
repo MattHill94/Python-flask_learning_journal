@@ -51,7 +51,7 @@ class PostTags(Model):
         )
 
     @classmethod
-    def tag_current_entries(cls, tag):
+    def tag_current_posts(cls, tag):
         try:
             tag_posts = Post.select().where(Post.what_i_learned.contains(tag.tag))
         except DoesNotExist:
@@ -83,7 +83,7 @@ class PostTags(Model):
     @classmethod
     def remove_existing_tag(cls, post):
         try:
-            associated_tags = Tags.select().where(Tags.tag.not_in(re.findall(r"[\w']+|[.,!?;]", post.content)))
+            associated_tags = Tags.select().where(Tags.tag.not_in(re.findall(r"[\w']+|[.,!?;]", post.what_i_learned)))
         except DoesNotExist:
             pass
         else:
@@ -94,7 +94,6 @@ class PostTags(Model):
                     pass
                 else:
                     unwanted_association.delete_instance()
-
 
 def initialize():
     db.connect()

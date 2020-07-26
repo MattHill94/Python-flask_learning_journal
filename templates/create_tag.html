@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% from 'macros.html' import render_field %}
+
+{% block content %}
+<section>
+    <div class="container">
+        <div class="new-entry">
+            <h2>Create a tag!</h2>
+            <form method="POST" action="" class="form">
+                    <dt>{{ form.hidden_tag() }}</dt>
+                    <dt>{{ form.tag.label }} {{ form.tag() }}</dt>
+                <button class="button" type="submit" id="submit">Create Tag!</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
