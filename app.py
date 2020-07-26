@@ -132,7 +132,7 @@ def edit_post(id):
         if form.validate_on_submit():
             post.title = form.title.data.strip()
             post.date_created = form.date.data
-            post.time_spent = form.time_spent.data.strip()
+            post.time_spent = form.time_spent.data
             post.what_i_learned = form.what_i_learned.data.strip()
             post.resources_to_remember = form.resources_to_remember.data.strip()
             post.save()
